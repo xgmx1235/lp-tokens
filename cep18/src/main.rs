@@ -238,8 +238,31 @@ pub extern "C" fn burn() {
     if owner != get_immediate_caller_address().unwrap_or_revert() {
         revert(Cep18Error::InvalidBurnTarget);
     }
-
     let amount: U256 = runtime::get_named_arg(AMOUNT);
+    _burn_token(owner, amount);
+}
+
+#[no_mangle]
+pub extern "C" fn burn_from() {
+    let spender = utils::get_immediate_caller_address().unwrap_or_revert();
+    let owner: Key = runtime::get_named_arg(OWNER);
+    let amount: U256 = runtime::get_named_arg(AMOUNT);
+    if amount.is_zero() {
+        return;
+    }
+
+    let allowances_uref = get_allowances_uref();
+    let spender_allowance: U256 = read_allowance_from(allowances_uref, owner, spender);
+    let new_spender_allowance = spender_allowance
+        .checked_sub(amount)
+        .ok_or(Cep18Error::InsufficientAllowance)
+        .unwrap_or_revert();
+
+    _burn_token(owner, amount);
+    write_allowance_to(allowances_uref, owner, spender, new_spender_allowance);
+}
+
+fn _burn_token(owner: Key, amount: U256) {
     let balances_uref = get_balances_uref();
     let total_supply_uref = get_total_supply_uref();
     let new_balance = {
