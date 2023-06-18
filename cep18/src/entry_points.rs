@@ -214,6 +214,19 @@ pub fn init() -> EntryPoint {
     )
 }
 
+pub fn burn_from() -> EntryPoint {
+    EntryPoint::new(
+        String::from("burn_from"),
+        vec![
+            Parameter::new(OWNER, Key::cl_type()),
+            Parameter::new(AMOUNT, U256::cl_type()),
+        ],
+        CLType::Unit,
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    )
+}
+
 /// Returns the default set of CEP-18 token entry points.
 pub fn generate_entry_points() -> EntryPoints {
     let mut entry_points = EntryPoints::new();
@@ -232,5 +245,6 @@ pub fn generate_entry_points() -> EntryPoints {
     entry_points.add_entry_point(change_security());
     entry_points.add_entry_point(burn());
     entry_points.add_entry_point(mint());
+    entry_points.add_entry_point(burn_from());
     entry_points
 }
